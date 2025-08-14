@@ -36,62 +36,127 @@ export default function Trash() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Trash</h1>
-        <Link className="text-sky-700 hover:underline" to="/">Back to Drive</Link>
-      </div>
+    <div className="min-h-screen w-full bg-gradient-to-br from-purple-50 via-white to-rose-50">
+      <div className="mx-auto max-w-6xl px-6 py-8">
 
-      {err && <div className="text-red-600 text-sm mb-3">{err}</div>}
-      {loading ? <div>Loading…</div> : (
-        <div className="space-y-8">
-          <section>
-            <h2 className="font-semibold mb-2">Folders</h2>
-            {folders.length === 0 ? (
-              <div className="text-sm text-gray-500">No folders in trash.</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {folders.map(f => (
-                  <div key={f.id} className="border rounded p-3 bg-white flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{f.name}</div>
-                      <div className="text-xs text-gray-500">Deleted: {new Date(f.deleted_at).toLocaleString()}</div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button className="text-emerald-700 text-sm" onClick={()=>restoreFolder(f.id)}>Restore</button>
-                      <button className="text-red-600 text-sm" onClick={()=>hardDeleteFolder(f.id)}>Delete forever</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-purple-800">Trash</h1>
+            <p className="text-sm text-gray-500">Items you’ve deleted recently.</p>
+          </div>
 
-          <section>
-            <h2 className="font-semibold mb-2">Files</h2>
-            {files.length === 0 ? (
-              <div className="text-sm text-gray-500">No files in trash.</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {files.map(file => (
-                  <div key={file.id} className="border rounded p-3 bg-white flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{file.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {file.mime} • {formatBytes(file.size)} • Deleted: {new Date(file.deleted_at).toLocaleString()}
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-lg border border-purple-200 bg-white px-4 py-2 text-sm font-medium text-purple-800 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-200"
+          >
+            Back to Drive
+          </Link>
+        </div>
+
+        {err && (
+          <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">
+            {err}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-sm text-gray-600">Loading…</div>
+        ) : (
+          <div className="space-y-10">
+
+            {/* Folders */}
+            <section>
+              <h2 className="mb-3 text-lg font-semibold text-purple-900">Folders</h2>
+
+              {folders.length === 0 ? (
+                <EmptyState label="No folders in trash." />
+              ) : (
+                <div className="space-y-3">
+                  {folders.map((f) => (
+                    <div
+                      key={f.id}
+                      className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-medium text-gray-900">{f.name}</div>
+                        <div className="mt-0.5 text-xs text-gray-500">
+                          Deleted: {new Date(f.deleted_at).toLocaleString()}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => restoreFolder(f.id)}
+                          className="inline-flex items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                        >
+                          Restore
+                        </button>
+                        <button
+                          onClick={() => hardDeleteFolder(f.id)}
+                          className="inline-flex items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                        >
+                          Delete forever
+                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-3">
-                      <button className="text-emerald-700 text-sm" onClick={()=>restoreFile(file.id)}>Restore</button>
-                      <button className="text-red-600 text-sm" onClick={()=>hardDeleteFile(file.id)}>Delete forever</button>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Files */}
+            <section>
+              <h2 className="mb-3 text-lg font-semibold text-purple-900">Files</h2>
+
+              {files.length === 0 ? (
+                <EmptyState label="No files in trash." />
+              ) : (
+                <div className="space-y-3">
+                  {files.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-medium text-gray-900">{file.name}</div>
+                        <div className="mt-0.5 text-xs text-gray-500">
+                          {file.mime} • {formatBytes(file.size)} • Deleted:{" "}
+                          {new Date(file.deleted_at).toLocaleString()}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => restoreFile(file.id)}
+                          className="inline-flex items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                        >
+                          Restore
+                        </button>
+                        <button
+                          onClick={() => hardDeleteFile(file.id)}
+                          className="inline-flex items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                        >
+                          Delete forever
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
     </div>
   );
+
+  /* ——— tiny empty state helper ——— */
+  function EmptyState({ label }) {
+    return (
+      <div className="rounded-xl border border-dashed border-purple-200 bg-white/60 p-8 text-center text-sm text-gray-500">
+        {label}
+      </div>
+    );
+  }
 }

@@ -86,55 +86,57 @@ export default function Reset() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-indigo-50 flex items-center justify-center px-4">
-        {/* Slight lift on larger screens */}
-        <div className="w-full max-w-md bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-sky-100 p-6 sm:p-8 -translate-y-6 lg:-translate-y-10">
-        <h1 className="text-2xl font-semibold text-sky-700 text-center">Reset password</h1>
-        <p className="text-sm text-gray-500 text-center mt-1 mb-6">
-            Choose a new password for your account.
-        </p>
+ return (
+  <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-rose-50 flex items-center justify-center px-4">
+    {/* Slight lift on larger screens */}
+    <div className="w-full max-w-md bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-purple-100 p-6 sm:p-8 -translate-y-6 lg:-translate-y-10">
+      <h1 className="text-2xl font-semibold text-center bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-transparent">
+        Reset password
+      </h1>
+      <p className="text-sm text-gray-500 text-center mt-1 mb-6">
+        Choose a new password for your account.
+      </p>
 
-        <form onSubmit={handleReset} className="space-y-4">
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-                New password
-            </label>
-            <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition"
-            />
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm new password
-            </label>
-            <input
-                type="password"
-                placeholder="••••••••"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-300 transition"
-            />
-            </div>
-
-            <button
-            type="submit"
-            className="w-full rounded-lg px-4 py-2 font-medium text-white bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 active:scale-[.99] transition"
-            >
-            Reset password
-            </button>
-        </form>
-
-        {/* Tiny footer helper (optional) */}
-        <div className="mt-4 text-center text-xs text-gray-500">
-            Make sure your new password is at least 6 characters.
+      <form onSubmit={handleReset} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            New password
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 transition"
+          />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Confirm new password
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 transition"
+          />
         </div>
+
+        <button
+          type="submit"
+          className="w-full rounded-lg px-4 py-2 font-medium text-white bg-gradient-to-r from-purple-600 to-rose-600 hover:from-purple-700 hover:to-rose-700 active:scale-[.99] transition"
+        >
+          Reset password
+        </button>
+      </form>
+
+      {/* Tiny footer helper (optional) */}
+      <div className="mt-4 text-center text-xs text-gray-500">
+        Make sure your new password is at least 6 characters.
+      </div>
     </div>
-    );
+  </div>
+);
 }

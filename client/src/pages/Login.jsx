@@ -189,158 +189,151 @@ export default function Login() {
   const onSubmit = mode === "login" ? handleLogin : handleSignup;
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-semibold mb-6 text-center">Welcome to GClone Drive</h1>
+    <div className="min-h-[92vh] flex items-center justify-center px-4 bg-gradient-to-br from-rose-50 via-white to-purple-50">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur shadow-xl rounded-2xl p-6 border border-purple-100">
+        <h1 className="text-2xl font-semibold mb-6 text-center">
+          <span className="bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-transparent">
+            Welcome to GClone Drive
+          </span>
+        </h1>
 
-      {/* Mode toggle */}
-      <div className="mb-6 flex gap-2 justify-center">
-        <button
-          className={`px-3 py-1.5 rounded border ${
-            mode === "login" ? "bg-sky-600 text-white border-sky-600" : "bg-white text-gray-700"
-          }`}
-          onClick={() => {
-            setMode("login");
-            setErr("");
-            setOk("");
-          }}
-          type="button"
-        >
-          Log in
-        </button>
-        <button
-          className={`px-3 py-1.5 rounded border ${
-            mode === "signup" ? "bg-sky-600 text-white border-sky-600" : "bg-white text-gray-700"
-          }`}
-          onClick={() => {
-            setMode("signup");
-            setErr("");
-            setOk("");
-          }}
-          type="button"
-        >
-          Create account
-        </button>
-      </div>
-
-      <form className="space-y-3" onSubmit={onSubmit}>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          placeholder="Email"
-          className="w-full border rounded px-3 py-2"
-          required
-        />
-
-        <div className="relative">
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type={showPw ? "text" : "password"}
-            placeholder={mode === "login" ? "Password" : "Create password"}
-            className="w-full border rounded px-3 py-2 pr-16"
-            required
-          />
+        {/* Mode toggle */}
+        <div className="mb-6 grid grid-cols-2 p-1 rounded-full bg-rose-50 border border-rose-100">
           <button
+            className={`py-2 rounded-full text-sm transition ${
+              mode === "login"
+                ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow"
+                : "text-rose-700 hover:bg-rose-100"
+            }`}
+            onClick={() => {
+              setMode("login");
+              setErr("");
+              setOk("");
+            }}
             type="button"
-            onClick={() => setShowPw((s) => !s)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-600"
           >
-            {showPw ? "Hide" : "Show"}
+            Log in
+          </button>
+          <button
+            className={`py-2 rounded-full text-sm transition ${
+              mode === "signup"
+                ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow"
+                : "text-rose-700 hover:bg-rose-100"
+            }`}
+            onClick={() => {
+              setMode("signup");
+              setErr("");
+              setOk("");
+            }}
+            type="button"
+          >
+            Create account
           </button>
         </div>
 
-        {mode === "signup" && (
+        <form className="space-y-3" onSubmit={onSubmit}>
           <input
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            type={showPw ? "text" : "password"}
-            placeholder="Confirm password"
-            className="w-full border rounded px-3 py-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            placeholder="Email"
+            className="w-full border rounded-lg px-3 py-2 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
             required
           />
-        )}
 
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        {ok && <p className="text-green-600 text-sm">{ok}</p>}
-
-        <div className="flex items-center justify-between">
-          <button
-            disabled={loading || !canSubmit}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded disabled:opacity-60"
-          >
-            {loading ? "Please wait..." : mode === "login" ? "Log in" : "Sign up"}
-          </button>
-
-          {mode === "login" && (
+          <div className="relative">
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type={showPw ? "text" : "password"}
+              placeholder={mode === "login" ? "Password" : "Create password"}
+              className="w-full border rounded-lg px-3 py-2 pr-16 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
+              required
+            />
             <button
               type="button"
-              onClick={() => {
-                setForgotOpen(true);
-                setErr("");
-                setOk("");
-                setForgotEmail(email);
-              }}
-              className="text-sm text-sky-700 hover:underline"
+              onClick={() => setShowPw((s) => !s)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-purple-700 hover:text-rose-700"
             >
-              Forgot password?
+              {showPw ? "Hide" : "Show"}
             </button>
-          )}
-        </div>
-      </form>
-
-      {/* Diagnostics 
-      <div className="mt-8 text-xs text-gray-600 border rounded p-3 bg-white">
-        <div className="font-semibold mb-1">Diagnostics</div>
-        <div>
-          <span className="font-medium">API_BASE:</span> {API_BASE || "(not set)"}
-        </div>
-        <div>
-          <span className="font-medium">Origin:</span> {ORIGIN}
-        </div>
-        <div>
-          <span className="font-medium">Last URL:</span> {diag.lastUrl}
-        </div>
-        <div>
-          <span className="font-medium">Status:</span> {diag.status}
-        </div>
-        <div className="break-words">
-          <span className="font-medium">Note:</span> {diag.note}
-        </div>
-        <div className="mt-2">
-          <button onClick={testApi} className="border px-2 py-1 rounded">
-            Test API
-          </button>
-        </div>
-      </div>
-*/}
-      {/* Forgot password modal */}
-      {forgotOpen && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow p-5 w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-3">Reset password</h2>
-            <form onSubmit={handleForgot} className="space-y-3">
-              <input
-                type="email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                placeholder="Your email"
-                className="w-full border rounded px-3 py-2"
-                required
-              />
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setForgotOpen(false)} className="border px-3 py-1.5 rounded">
-                  Cancel
-                </button>
-                <button className="bg-sky-600 text-white px-3 py-1.5 rounded">Send link</button>
-              </div>
-            </form>
-            <p className="text-xs text-gray-500 mt-3">
-              You’ll receive an email with a reset link.
-            </p>
           </div>
-        </div>
-      )}
+
+          {mode === "signup" && (
+            <input
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              type={showPw ? "text" : "password"}
+              placeholder="Confirm password"
+              className="w-full border rounded-lg px-3 py-2 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
+              required
+            />
+          )}
+
+          {err && <p className="text-rose-600 text-sm">{err}</p>}
+          {ok && <p className="text-green-600 text-sm">{ok}</p>}
+
+          <div className="flex items-center justify-between pt-1">
+            <button
+              disabled={loading || !canSubmit}
+              className="bg-gradient-to-r from-purple-600 to-rose-600 hover:from-purple-700 hover:to-rose-700 disabled:opacity-60 text-white px-4 py-2 rounded-lg shadow transition"
+            >
+              {loading ? "Please wait..." : mode === "login" ? "Log in" : "Sign up"}
+            </button>
+
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotOpen(true);
+                  setErr("");
+                  setOk("");
+                  setForgotEmail(email);
+                }}
+                className="text-sm text-purple-700 hover:text-rose-700 underline-offset-2 hover:underline"
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* Forgot password modal */}
+        {forgotOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl p-5 w-full max-w-sm border border-purple-100">
+              <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-transparent">
+                Reset password
+              </h2>
+              <form onSubmit={handleForgot} className="space-y-3">
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  placeholder="Your email"
+                  className="w-full border rounded-lg px-3 py-2 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
+                  required
+                />
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setForgotOpen(false)}
+                    className="border px-3 py-1.5 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button className="bg-gradient-to-r from-purple-600 to-rose-600 text-white px-3 py-1.5 rounded-lg shadow hover:from-purple-700 hover:to-rose-700">
+                    Send link
+                  </button>
+                </div>
+              </form>
+              <p className="text-xs text-gray-500 mt-3">
+                You’ll receive an email with a reset link.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
