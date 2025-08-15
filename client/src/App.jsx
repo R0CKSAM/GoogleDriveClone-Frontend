@@ -35,7 +35,7 @@ export default function App() {
           <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/" className="text-sky-700 font-semibold text-lg tracking-tight">
-                GClone Drive
+                Sam Gdrive
               </Link>
               <NavLinks />
             </div>

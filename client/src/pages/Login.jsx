@@ -193,7 +193,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white/90 backdrop-blur shadow-xl rounded-2xl p-6 border border-purple-100">
         <h1 className="text-2xl font-semibold mb-6 text-center">
           <span className="bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-transparent">
-            Welcome to GClone Drive
+            Welcome to Sam Gdrive
           </span>
         </h1>
 

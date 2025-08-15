@@ -152,7 +152,7 @@ export default function Dashboard() {
         <div className="px-6 h-14 flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-md bg-purple-600" />
-            <span className="font-bold text-purple-800">GClone Drive</span>
+            <span className="font-bold text-purple-800">Sam Gdrive</span>
           </div>
 
           {/* Search (functional) */}
