@@ -1,6 +1,8 @@
+// src/pages/Login.jsx
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { Mail, Lock, Eye, EyeOff, Info } from "lucide-react";
 
 /* ---------------- ENV + helpers ---------------- */
 
@@ -12,18 +14,11 @@ const API_BASE = RAW.startsWith("https://localhost:")
   ? RAW.replace(/^https:\/\//, "http://")
   : RAW;
 
-const ORIGIN = typeof window !== "undefined" ? window.location.origin : "";
-
-// Small fetch with timeout so UI doesn’t hang forever
 function timeoutFetch(url, options = {}, ms = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), ms);
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
 }
-
-// Helpful logs once
-console.log("[Auth] VITE_API_BASE =", API_BASE);
-console.log("[Auth] origin =", ORIGIN);
 
 /* ---------------- Component ---------------- */
 
@@ -44,68 +39,38 @@ export default function Login() {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
-  // live diagnostics
-  const [diag, setDiag] = useState({ lastUrl: "", status: "", note: "" });
-
   const canSubmit = useMemo(() => {
     if (mode === "signup" && password !== confirm) return false;
     return !!email && !!password;
   }, [mode, email, password, confirm]);
 
   async function httpPost(path, body) {
-    if (!API_BASE) {
-      const m = "VITE_API_BASE is not defined. Add it in .env and restart the dev server.";
-      console.error(m);
-      setDiag((d) => ({ ...d, lastUrl: "(missing API_BASE)", status: "ENV_ERROR", note: m }));
-      throw new Error(m);
-    }
+    if (!API_BASE) throw new Error("VITE_API_BASE is not defined. Add it in .env and restart dev server.");
     const url = `${API_BASE}${path}`;
-    setDiag({ lastUrl: url, status: "REQUESTING", note: "" });
+    const res = await timeoutFetch(
+      url,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+      15000
+    );
 
-    try {
-      const res = await timeoutFetch(
-        url,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-        15000
-      );
+    const text = await res.text();
+    let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch {}
 
-      const text = await res.text();
-      let data = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        // non-JSON error bodies are fine
-      }
-
-      if (!res.ok) {
-        const msg = data?.error || `HTTP ${res.status}: ${text || "Request failed"}`;
-        setDiag({ lastUrl: url, status: `HTTP_${res.status}`, note: msg });
-        throw new Error(msg);
-      }
-
-      setDiag({ lastUrl: url, status: "OK", note: "" });
-      return data;
-    } catch (e) {
-      const note =
-        e.name === "AbortError"
-          ? "Timed out (no response). Is the backend up/reachable?"
-          : e.message?.includes("Failed to fetch")
-          ? "Failed to fetch (possible CORS or wrong URL). Check Network tab & CORS allow list."
-          : e.message || "Request failed";
-      setDiag((d) => ({ ...d, status: "NETWORK_ERROR", note }));
-      throw e;
+    if (!res.ok) {
+      const msg = data?.error || `HTTP ${res.status}: ${text || "Request failed"}`;
+      throw new Error(msg);
     }
+    return data;
   }
 
   async function handleLogin(e) {
     e.preventDefault();
-    setErr("");
-    setOk("");
-    setLoading(true);
+    setErr(""); setOk(""); setLoading(true);
     try {
       const { session } = await httpPost("/api/auth/login", { email, password });
       if (!session?.access_token) throw new Error("No access token returned");
@@ -120,8 +85,7 @@ export default function Login() {
 
   async function handleSignup(e) {
     e.preventDefault();
-    setErr("");
-    setOk("");
+    setErr(""); setOk("");
     if (password.length < 6) return setErr("Password must be at least 6 characters.");
     if (password !== confirm) return setErr("Passwords do not match.");
     setLoading(true);
@@ -140,8 +104,7 @@ export default function Login() {
 
   async function handleForgot(e) {
     e.preventDefault();
-    setErr("");
-    setOk("");
+    setErr(""); setOk("");
     try {
       // Only works if backend adds POST /api/auth/forgot
       const data = await httpPost("/api/auth/forgot", { email: forgotEmail || email });
@@ -157,126 +120,129 @@ export default function Login() {
     }
   }
 
-  async function testApi() {
-    setErr("");
-    setOk("");
-    if (!API_BASE) {
-      setDiag({
-        lastUrl: "(missing API_BASE)",
-        status: "ENV_ERROR",
-        note: "Define VITE_API_BASE and restart dev server.",
-      });
-      return;
-    }
-    const url = `${API_BASE}/`;
-    setDiag({ lastUrl: url, status: "REQUESTING", note: "Testing health endpoint…" });
-    try {
-      const res = await timeoutFetch(url, {}, 10000);
-      const text = await res.text();
-      let json = {};
-      try {
-        json = text ? JSON.parse(text) : {};
-      } catch {}
-      setDiag({ lastUrl: url, status: `HTTP_${res.status}`, note: JSON.stringify(json || text) });
-      if (res.ok) setOk("Backend reachable from browser.");
-      else setErr("Health check returned non-OK.");
-    } catch (e) {
-      setDiag({ lastUrl: url, status: "NETWORK_ERROR", note: e.message || "Failed to fetch" });
-      setErr("Could not reach backend from browser (CORS/URL/network).");
-    }
-  }
-
   const onSubmit = mode === "login" ? handleLogin : handleSignup;
 
   return (
-    <div className="min-h-[92vh] flex items-center justify-center px-4 bg-gradient-to-br from-rose-50 via-white to-purple-50">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur shadow-xl rounded-2xl p-6 border border-purple-100">
-        <h1 className="text-2xl font-semibold mb-6 text-center">
-          <span className="bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-transparent">
-            Welcome to Sam Gdrive
-          </span>
-        </h1>
-
-        {/* Mode toggle */}
-        <div className="mb-6 grid grid-cols-2 p-1 rounded-full bg-rose-50 border border-rose-100">
-          <button
-            className={`py-2 rounded-full text-sm transition ${
-              mode === "login"
-                ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow"
-                : "text-rose-700 hover:bg-rose-100"
-            }`}
-            onClick={() => {
-              setMode("login");
-              setErr("");
-              setOk("");
-            }}
-            type="button"
-          >
-            Log in
-          </button>
-          <button
-            className={`py-2 rounded-full text-sm transition ${
-              mode === "signup"
-                ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow"
-                : "text-rose-700 hover:bg-rose-100"
-            }`}
-            onClick={() => {
-              setMode("signup");
-              setErr("");
-              setOk("");
-            }}
-            type="button"
-          >
-            Create account
-          </button>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-rose-50 via-white to-purple-50">
+      <div className="w-full max-w-md rounded-2xl border border-purple-100 bg-white/90 p-6 shadow-xl backdrop-blur">
+        {/* Brand + Welcome */}
+        <div className="flex flex-col items-center">
+          <div className="inline-flex items-center gap-3 rounded-xl bg-white/70 px-3 py-2 ring-1 ring-purple-100">
+            <LogoMark className="h-10 w-10" />
+            <span className="bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
+              Sam Gdrive
+            </span>
+          </div>
+          <h1 className="mt-4 text-lg font-semibold text-gray-900">
+            {mode === "login" ? "Welcome" : "Create your account"}
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {mode === "login" ? "Log in to continue." : "It only takes a minute."}
+          </p>
         </div>
 
-        <form className="space-y-3" onSubmit={onSubmit}>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            placeholder="Email"
-            className="w-full border rounded-lg px-3 py-2 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
-            required
-          />
-
-          <div className="relative">
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type={showPw ? "text" : "password"}
-              placeholder={mode === "login" ? "Password" : "Create password"}
-              className="w-full border rounded-lg px-3 py-2 pr-16 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
-              required
-            />
+        {/* Centered tabs */}
+        <div className="mt-6 flex justify-center">
+          <div className="grid w-[320px] grid-cols-2 rounded-full border border-rose-100 bg-rose-50 p-1">
             <button
               type="button"
-              onClick={() => setShowPw((s) => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-purple-700 hover:text-rose-700"
+              className={`rounded-full py-2 text-sm transition ${
+                mode === "login"
+                  ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow"
+                  : "text-rose-700 hover:bg-rose-100"
+              }`}
+              onClick={() => { setMode("login"); setErr(""); setOk(""); }}
             >
-              {showPw ? "Hide" : "Show"}
+              Log in
+            </button>
+            <button
+              type="button"
+              className={`rounded-full py-2 text-sm transition ${
+                mode === "signup"
+                  ? "bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow"
+                  : "text-rose-700 hover:bg-rose-100"
+              }`}
+              onClick={() => { setMode("signup"); setErr(""); setOk(""); }}
+            >
+              Create account
             </button>
           </div>
+        </div>
+
+        {/* Alerts */}
+        <div aria-live="polite" className="mt-4 space-y-2">
+          {err && (
+            <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {err}
+            </div>
+          )}
+          {ok && !err && (
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              {ok}
+            </div>
+          )}
+        </div>
+
+        {/* Form */}
+        <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">Email</span>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="you@example.com"
+                className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-300"
+                required
+              />
+            </div>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-700">
+              {mode === "login" ? "Password" : "Create password"}
+            </span>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type={showPw ? "text" : "password"}
+                placeholder={mode === "login" ? "Your password" : "At least 6 characters"}
+                className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-12 py-2 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-300"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-xs text-purple-700 hover:bg-purple-50"
+                aria-label={showPw ? "Hide password" : "Show password"}
+              >
+                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </label>
 
           {mode === "signup" && (
-            <input
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              type={showPw ? "text" : "password"}
-              placeholder="Confirm password"
-              className="w-full border rounded-lg px-3 py-2 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
-              required
-            />
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-700">Confirm password</span>
+              <input
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                type={showPw ? "text" : "password"}
+                placeholder="Re-enter password"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-300"
+                required
+              />
+            </label>
           )}
-
-          {err && <p className="text-rose-600 text-sm">{err}</p>}
-          {ok && <p className="text-green-600 text-sm">{ok}</p>}
 
           <div className="flex items-center justify-between pt-1">
             <button
               disabled={loading || !canSubmit}
-              className="bg-gradient-to-r from-purple-600 to-rose-600 hover:from-purple-700 hover:to-rose-700 disabled:opacity-60 text-white px-4 py-2 rounded-lg shadow transition"
+              className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-rose-600 px-4 py-2 text-sm text-white shadow transition hover:from-purple-700 hover:to-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Please wait..." : mode === "login" ? "Log in" : "Sign up"}
             </button>
@@ -290,7 +256,7 @@ export default function Login() {
                   setOk("");
                   setForgotEmail(email);
                 }}
-                className="text-sm text-purple-700 hover:text-rose-700 underline-offset-2 hover:underline"
+                className="text-sm text-purple-700 underline-offset-2 hover:text-rose-700 hover:underline"
               >
                 Forgot password?
               </button>
@@ -298,42 +264,82 @@ export default function Login() {
           </div>
         </form>
 
-        {/* Forgot password modal */}
-        {forgotOpen && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl p-5 w-full max-w-sm border border-purple-100">
-              <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-transparent">
-                Reset password
-              </h2>
-              <form onSubmit={handleForgot} className="space-y-3">
+        {/* Helper note */}
+        <div className="mt-4 inline-flex items-center gap-1 text-xs text-gray-500">
+          <Info className="h-3.5 w-3.5" />
+          Use the same credentials you created during sign up.
+        </div>
+      </div>
+
+      {/* Forgot password modal */}
+      {forgotOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setForgotOpen(false);
+          }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-purple-100 bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="reset-title"
+              className="mb-3 bg-gradient-to-r from-purple-700 to-rose-700 bg-clip-text text-lg font-semibold text-transparent"
+            >
+              Reset password
+            </h2>
+            <form onSubmit={handleForgot} className="space-y-3">
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-700">Email</span>
                 <input
                   type="email"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="Your email"
-                  className="w-full border rounded-lg px-3 py-2 outline-none border-gray-300 focus:ring-2 focus:ring-purple-300 focus:border-purple-400 transition"
+                  placeholder="your@email.com"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-300"
                   required
                 />
-                <div className="flex gap-2 justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setForgotOpen(false)}
-                    className="border px-3 py-1.5 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button className="bg-gradient-to-r from-purple-600 to-rose-600 text-white px-3 py-1.5 rounded-lg shadow hover:from-purple-700 hover:to-rose-700">
-                    Send link
-                  </button>
-                </div>
-              </form>
-              <p className="text-xs text-gray-500 mt-3">
-                You’ll receive an email with a reset link.
-              </p>
-            </div>
+              </label>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForgotOpen(false)}
+                  className="rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button className="rounded-lg bg-gradient-to-r from-purple-600 to-rose-600 px-3 py-1.5 text-sm text-white shadow hover:from-purple-700 hover:to-rose-700">
+                  Send link
+                </button>
+              </div>
+            </form>
+            <p className="mt-3 text-xs text-gray-500">You’ll receive an email with a reset link.</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/* Minimal, professional logo (matches Dashboard) */
+function LogoMark({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} role="img" aria-label="Sam Gdrive logo">
+      <defs>
+        <linearGradient id="sgd" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#f43f5e" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M4 8.6c0-.7.37-1.35.98-1.7l6-3.3a2 2 0 0 1 2.04 0l6 3.3c.61.35.98 1.01.98 1.7v6.8c0 .7-.37 1.35-.98 1.7l-6 3.3a2 2 0 0 1-2.04 0l-6-3.3A1.98 1.98 0 0 1 4 15.4V8.6z"
+        fill="url(#sgd)"
+      />
+      <path d="M8 12h8" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity=".7" />
+    </svg>
   );
 }

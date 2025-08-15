@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate, Link } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Trash from "./pages/Trash.jsx";
@@ -25,48 +25,13 @@ function AppRoutes() {
   );
 }
 
-
 export default function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen">
-        {/* Topbar */}
-        <nav className="bg-white/80 backdrop-blur border-b">
-          <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link to="/" className="text-sky-700 font-semibold text-lg tracking-tight">
-                Sam Gdrive
-              </Link>
-              <NavLinks />
-            </div>
-            <AuthActions />
-          </div>
-        </nav>
-
         <AppRoutes />
         <Toaster position="top-right" toastOptions={{ style: { fontSize: 14 } }} />
       </div>
     </AuthProvider>
-  );
-}
-
-function NavLinks() {
-  const { token } = useAuth();
-  if (!token) return null;
-  return (
-    <div className="text-sm text-gray-700 flex items-center gap-4">
-      <Link to="/" className="hover:text-sky-700">Home</Link>
-      <Link to="/trash" className="hover:text-sky-700">Trash</Link>
-    </div>
-  );
-}
-
-function AuthActions() {
-  const { token, logout } = useAuth();
-  if (!token) return null;
-  return (
-    <button onClick={logout} className="text-sm text-red-600 hover:text-red-700">
-      Log out
-    </button>
   );
 }
